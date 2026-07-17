@@ -25,7 +25,6 @@ It's non-parametric, meaning it makes no assumptions about the underlying data d
 
 One real concern with KNN is the **curse of dimensionality**: as the number of features increases, distances between points become less meaningful, which hurts classification performance. It's also slow at prediction time since it has to scan the entire training set for every new query.
 
----
 
 ## Support Vector Machine (SVM)
 
@@ -39,7 +38,6 @@ The data points that sit closest to this boundary are called support vectors, an
 
 For data that isn't linearly separable, SVM applies the kernel trick — implicitly mapping features into a higher-dimensional space where a clean linear boundary *can* exist, without ever computing the transformation explicitly. This is what makes it particularly well-suited for complex medical classification problems like this one.
 
----
 
 ## Results & Observations
 
