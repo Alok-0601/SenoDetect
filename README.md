@@ -50,10 +50,9 @@ Here's what the experiments revealed:
 --> PCA had a much greater effect on SVM than on KNN — as more principal components were retained, SVM showed consistent accuracy gains, suggesting it benefits significantly from a clean, low-noise feature representation
 --> Peak accuracy of 97.95% was achieved with PC = 1 and K = 9 — a notable result showing that even a heavily compressed single-component representation can retain strong discriminative signal
 
----
-
 ## Conclusion
 
 This project shows that classical supervised learning — when paired with proper preprocessing and hyperparameter tuning — can reach clinical-grade accuracy on breast cancer classification. SVM proved to be the stronger model overall, offering more stable performance, better generalization, and superior handling of the high-dimensional feature space.
 
 The broader takeaway is that ML-based diagnostic systems aren't here to replace clinicians — they're here to augment them. With further work on model interpretability (think SHAP values or LIME) and validation across diverse clinical datasets, pipelines like this could realistically integrate into real-world diagnostic workflows as a fast, consistent second opinion.
+PCA also played a major role as this was a distance based ML algorithm based project 
