@@ -1,58 +1,82 @@
-# SenoDetect
-##Project Overview
+# Senodetect
 
-Breast cancer is one of the leading causes of cancer-related mortality worldwide, and yet one of the most treatable when caught early. The challenge? Tumors in their early stages are often clinically silent — symptoms don't show up until the disease has already progressed. This is exactly where data-driven approaches can make a meaningful difference.
+A machine learning web app that predicts whether a breast tumor is **benign** or **malignant** from digitized cell nuclei measurements, built on the classic Wisconsin Diagnostic Breast Cancer (WDBC) dataset and deployed with Streamlit.
 
-This project investigates the use of supervised machine learning for *binary classification* of breast tumors — distinguishing between *benign* (non-cancerous) and *malignant* (cancerous) cases. The goal is to assess whether a well-tuned ML pipeline can serve as a reliable decision-support layer alongside medical professionals.
-
-The dataset used is the **Wisconsin Diagnostic Breast Cancer (WDBC) Dataset**, curated by the University of Wisconsin Hospital. It contains 30 real-valued features computed from digitized Fine Needle Aspirate (FNA) biopsy images, capturing cell nuclei characteristics like texture, perimeter, smoothness, and fractal dimension.
-
-Two supervised learning algorithms were implemented and benchmarked:
---> K-Nearest Neighbors (KNN) — a distance-based, instance-level classifier
---> Support Vector Machine (SVM) — a margin-maximizing classifier with strong theoretical guarantees
+I built this project to get hands-on with a full ML workflow — from raw tabular data to a deployed, interactive app — using a dataset that's small enough to iterate on quickly but realistic enough to actually matter.
 
 
+##  Overview
 
-## K-Nearest Neighbors (KNN)
+Breast cancer diagnosis today relies heavily on a pathologist visually assessing cell nuclei from a fine needle aspirate (FNA) of a breast mass. The WDBC dataset digitizes that process: each sample describes ten physical characteristics of a cell nucleus (radius, texture, perimeter, etc.), each summarized by its **mean**, **standard error**, and **"worst" (largest) value** — 30 features in total, computed for each of 569 patient samples.
 
-KNN is a lazy learning algorithm — it skips the training phase entirely and defers all computation to inference time. Classification works by:
-
-- Computing the distance (typically Euclidean) between a query point and all training samples
-- Identifying the *K* closest neighbors
-- Assigning the class via majority vote
-
-It's non-parametric, meaning it makes no assumptions about the underlying data distribution. This flexibility is both a strength and a limitation. When K is too small, the model is sensitive to noise and local outliers, leading to high variance. As K grows, the decision boundary smooths out — but too high and you risk underfitting.
-
-One real concern with KNN is the **curse of dimensionality**: as the number of features increases, distances between points become less meaningful, which hurts classification performance. It's also slow at prediction time since it has to scan the entire training set for every new query.
+This project trains a classifier on those features to predict whether a mass is benign or malignant, then wraps the trained model in a Streamlit interface so it can be used interactively rather than only from a notebook.
 
 
-## Support Vector Machine (SVM)
+## Dataset
 
-SVM is a discriminative classifier rooted in statistical learning theory. Rather than modeling class distributions, it finds the optimal separating hyperplane — the decision boundary that maximizes the margin between the two classes.
+- **Source:** [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/17/breast+cancer+wisconsin+diagnostic) — originally provided by the University of Wisconsin
+- **Samples:** 569 (357 benign, 212 malignant)
+- **Features:** 30 numeric features derived from digitized images of FNA biopsies, grouped into three sets of 10:
+  - **Mean** — average value across the cell nuclei in the image
+  - **Standard Error (SE)** — variability across the cell nuclei
+  - **Worst** — mean of the three largest/most severe values
+- **Base measurements:** radius, texture, perimeter, area, smoothness, compactness, concavity, concave points, symmetry, fractal dimension
+- **Target:** Diagnosis — `M` (malignant) or `B` (benign)
 
-The data points that sit closest to this boundary are called support vectors, and they're the only ones that actually influence the model. This makes SVM:
 
-- Robust to overfitting, especially in high-dimensional spaces
-- Memory-efficient — most training points are irrelevant after fitting
-- Theoretically grounded in structural risk minimization
+##  Project Workflow
 
-For data that isn't linearly separable, SVM applies the kernel trick — implicitly mapping features into a higher-dimensional space where a clean linear boundary *can* exist, without ever computing the transformation explicitly. This is what makes it particularly well-suited for complex medical classification problems like this one.
+The notebook (`Breast_cancer_analysis.ipynb`) follows a standard supervised learning pipeline:
+
+1. **Data loading & cleaning** — reading the raw dataset (`wdbc`), dropping identifier columns, and encoding the diagnosis label.
+2. **Exploratory Data Analysis (EDA)** — using `pandas`, `matplotlib`, and `seaborn` to understand feature distributions, class balance, and correlations between features.
+3. **Preprocessing** — scaling all features with a `StandardScaler` so no single measurement (e.g. area, which has a much larger numeric range than smoothness) dominates the model.
+4. **Dimensionality reduction** — applying `PCA` to compress the 30 correlated features into a smaller set of uncorrelated components, reducing noise and redundancy before training.
+5. **Model training** — fitting a **Support Vector Machine (SVM)** classifier on the PCA-transformed data.
+6. **Evaluation** — assessing the trained model on a held-out test set.
+7. **Serialization** — saving the fitted `scaler`, `pca`, and `svm_model` as `.pkl` files so the trained pipeline can be reused without retraining.
+8. **Deployment** — wrapping the saved pipeline in a Streamlit app (`app.py`) for interactive predictions.
 
 
-## Results & Observations
+##  Model Performance
 
-Before passing features into either classifier, Principal Component Analysis (PCA) was applied as a preprocessing step — projecting the original 30 features onto a lower-dimensional subspace of uncorrelated principal components while retaining maximum variance.
+To evaluate the effectiveness of the proposed approach, two machine learning algorithms—K-Nearest Neighbors (KNN) and Support Vector Machine (SVM)—were trained on the preprocessed dataset. Before training, the data was standardized using **StandardScaler** and transformed using **Principal Component Analysis (PCA)** to reduce dimensionality while preserving most of the important information.
 
-Here's what the experiments revealed:
+The **K-Nearest Neighbors (KNN)** classifier achieved an accuracy of **95.61%** with a **ROC-AUC score of 0.984**, demonstrating strong performance in distinguishing between benign and malignant tumors.
 
---> SVM consistently outperformed KNN in classification accuracy, particularly as training data increased — a direct outcome of its structural risk minimization principle enabling better generalization
---> KNN was highly sensitive to the choice of K — low values produced noisy, high-variance boundaries, while larger values generally stabilized accuracy
---> PCA had a much greater effect on SVM than on KNN — as more principal components were retained, SVM showed consistent accuracy gains, suggesting it benefits significantly from a clean, low-noise feature representation
---> Peak accuracy of 97.95% was achieved with PC = 1 and K = 9 — a notable result showing that even a heavily compressed single-component representation can retain strong discriminative signal
+The **Support Vector Machine (SVM)** classifier delivered the best overall results, achieving an accuracy of **96.49%** and a **ROC-AUC score of 0.995**. These results indicate that the model is highly effective at separating the two classes and provides excellent predictive performance.
 
-## Conclusion
+Based on these evaluation metrics, the **Support Vector Machine (SVM)** was selected as the final model and deployed in the Streamlit web application to provide real-time breast cancer predictions.
 
-This project shows that classical supervised learning — when paired with proper preprocessing and hyperparameter tuning — can reach clinical-grade accuracy on breast cancer classification. SVM proved to be the stronger model overall, offering more stable performance, better generalization, and superior handling of the high-dimensional feature space.
 
-The broader takeaway is that ML-based diagnostic systems aren't here to replace clinicians — they're here to augment them. With further work on model interpretability (think SHAP values or LIME) and validation across diverse clinical datasets, pipelines like this could realistically integrate into real-world diagnostic workflows as a fast, consistent second opinion.
-PCA also played a major role as this was a distance based ML algorithm based project 
+##  Tech Stack
+
+- **Python** — core language
+- **pandas / numpy** — data manipulation
+- **matplotlib / seaborn** — visualization and EDA
+- **scikit-learn** — preprocessing (`StandardScaler`), dimensionality reduction (`PCA`), and modeling (`SVM`)
+- **Streamlit** — interactive web app for deployment
+- **Plotly** — interactive charts (confidence gauge, feature comparison radar) in the app
+
+
+##  Deployment
+
+This is the exact link which you can use to directly interact with the model: https://senodetect-alok.streamlit.app/
+
+##  Possible Improvements
+
+- Compare the SVM against other classifiers (Random Forest, Logistic Regression, XGBoost) and report the best performer.
+- Add cross-validation results instead of a single train/test split for a more robust performance estimate.
+- Add SHAP or feature-importance visualizations so predictions are more interpretable.
+- Allow batch predictions from a full CSV of patients instead of one row at a time.
+
+
+##  Disclaimer
+
+This project is for **educational and portfolio purposes only**. It is not a certified medical device and should never be used as a substitute for professional diagnosis by a qualified healthcare provider.
+
+
+##  Acknowledgements
+
+Dataset provided by the **University of Wisconsin** via the UCI Machine Learning Repository:
+ Wolberg, W., Mangasarian, O., Street, N., & Street, W. (1995). *Breast Cancer Wisconsin (Diagnostic)* [Dataset]. UCI Machine Learning Repository.
