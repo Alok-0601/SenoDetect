@@ -1,4 +1,4 @@
-# Breast Cancer Diagnosis Predictor
+# Senodetect
 
 A machine learning web app that predicts whether a breast tumor is **benign** or **malignant** from digitized cell nuclei measurements, built on the classic Wisconsin Diagnostic Breast Cancer (WDBC) dataset and deployed with Streamlit.
 
